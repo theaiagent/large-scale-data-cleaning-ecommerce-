@@ -1,93 +1,115 @@
 # Large-Scale E-commerce Data Cleaning & Standardization
 
-End-to-end data cleaning pipeline for a **125,000-row** simulated e-commerce dataset with **8 distinct data quality issues**.
+**125,000 rows | 8 data quality issues | Fully automated pipeline**
 
-## The Problem
+An end-to-end data cleaning solution that transforms a messy, real-world-style e-commerce export into analysis-ready data — in under 30 seconds.
 
-E-commerce data exports often arrive with:
+---
 
-| Issue | Rows Affected |
-|-------|--------------|
-| Duplicate records | ~5,000 |
-| Mixed date formats (5 variants) | 99,933 |
-| Currency symbols in prices ($, EUR, TL) | 74,901 |
-| UTF-8 encoding corruption (mojibake) | 37,978 |
-| SKU casing inconsistencies | 31,147 |
-| Inconsistent country names | 73,483 |
-| Status field typos & casing | 62,294 |
-| Placeholder strings as nulls (N/A, -, "") | multiple columns |
+## Problem
 
-## The Solution
+A Shopify-style e-commerce export with **125K rows** arrives riddled with quality issues that block reporting and analytics:
 
-A reproducible Python pipeline that:
+| Issue | Scale |
+|-------|-------|
+| Duplicate records | 5,000 rows |
+| Mixed date formats (5 variants) | 99,933 rows |
+| Currency symbols & locale formats ($, EUR, TL) | 74,901 rows |
+| UTF-8 encoding corruption (mojibake) | 37,978 rows |
+| Inconsistent country names | 73,483 rows |
+| Status field typos & casing | 62,294 rows |
+| SKU casing inconsistencies | 31,147 rows |
+| Placeholder nulls (N/A, -, empty strings) | multiple columns |
 
-1. **Drops** 3 empty columns
-2. **Removes** 5,000 duplicate rows
-3. **Standardizes** dates to ISO 8601 (`YYYY-MM-DD`)
-4. **Normalizes** prices to float (strips `$`, `EUR`, `TL`, fixes comma decimals)
-5. **Cleans** SKU format to `SKU-XXX`
-6. **Coerces** fake null values (`N/A`, `n/a`, `-`, `""`) to proper `NaN`
-7. **Repairs** encoding corruption (Latin-1 artifacts to UTF-8)
-8. **Standardizes** phone numbers to `XXX-XXX-XXXX`
-9. **Maps** country names to ISO alpha-2 codes
-10. **Fixes** status typos and casing
+Manual cleaning would take **days**. Errors would be inevitable.
 
-**Result:** 120,000 clean rows, 10 columns, zero duplicates, consistent formats.
+## Solution
 
-## Project Structure
+A **10-step Python pipeline** that handles everything automatically:
 
 ```
-.
-├── generate_messy_data.py           # Generates the synthetic messy dataset
-├── build_notebook.py                # Builds the Jupyter notebook programmatically
-├── data_cleaning_portfolio.ipynb    # Full cleaning pipeline with outputs
-├── build_case_study.py              # Generates the HTML case study
-├── case_study.html                  # Visual case study (print to PDF)
-└── docs/plans/                      # Design & implementation docs
+Dates        → ISO 8601 (YYYY-MM-DD)
+Prices       → Clean float (strips $, EUR, TL, fixes comma decimals)
+SKUs         → Uppercase SKU-XXX
+Countries    → ISO alpha-2 codes
+Phone numbers → XXX-XXX-XXXX
+Encoding     → Latin-1 artifacts repaired to UTF-8
+Nulls        → Fake values (N/A, -, "") coerced to proper NaN
+Statuses     → Typos fixed, casing standardized
+Duplicates   → Removed
+Empty columns → Dropped
 ```
+
+## Result
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Rows | 125,000 | 120,000 |
+| Columns | 13 | 10 |
+| Duplicates | 5,000 | 0 |
+| Date formats | 5 | 1 |
+| Currency formats | 5 | 1 |
+| Encoding errors | 37,978 | 0 |
+| Null representations | 4+ variants | Standard NaN |
+
+**Processing time: ~15 seconds** on a standard machine.
+
+---
 
 ## Quick Start
 
 ```bash
-# 1. Generate the messy dataset
+pip install pandas numpy jupyter nbformat nbconvert
+
+# 1 — Generate the messy dataset
 python generate_messy_data.py
 
-# 2. Build and execute the notebook
+# 2 — Build and execute the cleaning notebook
 python build_notebook.py
 jupyter nbconvert --to notebook --execute data_cleaning_portfolio.ipynb \
   --output data_cleaning_portfolio.ipynb --ExecutePreprocessor.timeout=300
-
-# 3. Generate the case study
-python build_case_study.py
-# Open case_study.html in browser → Print → Save as PDF
 ```
 
-## Requirements
+## Project Structure
 
-- Python 3.10+
-- pandas
-- numpy
-- jupyter / nbformat / nbconvert
-
-```bash
-pip install pandas numpy jupyter nbformat nbconvert
 ```
-
-## Dataset Details
-
-The synthetic dataset simulates a Shopify e-commerce export with realistic messy patterns:
-
-- **120,000 base rows** + **5,000 injected duplicates** = 125,000 total
-- **13 columns** including 3 intentionally empty ones
-- **10 product names** with Turkish/German characters (Grüner Tee, Türkçe Klavye Seti)
-- **5 date formats:** `MM/DD/YYYY`, `YYYY-MM-DD`, `DD-MM-YYYY`, `Mon DD, YYYY`, `DD.MM.YYYY`
-- **5 currency formats:** `$19.99`, `19.99`, `EUR19,99`, `USD 19.99`, `19.99 TL`
-- Deterministic output via `random.seed(42)` and `np.random.seed(42)`
+├── data_cleaning_portfolio.ipynb  # Full pipeline with outputs (start here)
+├── messy_ecommerce_export.csv     # Raw dataset (125K rows)
+├── generate_messy_data.py         # Synthetic data generator
+├── build_notebook.py              # Notebook builder (nbformat)
+├── build_case_study.py            # HTML/PDF case study generator
+└── case_study.html                # Visual case study
+```
 
 ## Tech Stack
 
-Python 3 | Pandas | NumPy | nbformat | Jinja2
+Python 3 | Pandas | NumPy | nbformat
 
 ---
 
-*Simulated large-scale e-commerce export for demonstration purposes. All data is synthetically generated.*
+## Screenshots
+
+> *Visual walkthrough of the cleaning pipeline and results.*
+
+| | |
+|---|---|
+| **Before: Raw Data Sample** | **After: Cleaned Output** |
+| ![Before](screenshots/before_raw_data.png) | ![After](screenshots/after_cleaned_data.png) |
+| **Cleaning Summary** | **Schema Comparison** |
+| ![Summary](screenshots/cleaning_summary.png) | ![Schema](screenshots/schema_comparison.png) |
+
+<!--
+  HOW TO ADD SCREENSHOTS:
+  1. Create a "screenshots" folder in this repo
+  2. Take screenshots from the notebook or case study PDF
+  3. Recommended screenshots:
+     - before_raw_data.png      → first few rows of messy data
+     - after_cleaned_data.png   → first few rows of cleaned data
+     - cleaning_summary.png     → the cleaning summary table
+     - schema_comparison.png    → before/after schema comparison
+  4. Push the screenshots folder to GitHub
+-->
+
+---
+
+*Synthetic e-commerce dataset for demonstration purposes. All data is programmatically generated.*
