@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce Data Cleaning Case Study</title>
+    
+<style>
+    /* ---- Reset & Base ---- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+        color: #2c3e50;
+        background: #ffffff;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    /* ---- Page Container ---- */
+    .page {
+        width: 210mm;
+        min-height: 287mm;
+        margin: 0 auto;
+        padding: 40px 50px;
+        page-break-after: always;
+        position: relative;
+    }
+    .page:last-child { page-break-after: auto; }
+
+    /* ---- Typography ---- */
+    .page-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 6px;
+        letter-spacing: -0.5px;
+    }
+    .page-subtitle {
+        font-size: 16px;
+        color: #7f8c8d;
+        font-weight: 400;
+        margin-bottom: 30px;
+    }
+    .section-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 24px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #3498db;
+    }
+    .sub-section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 28px 0 14px 0;
+    }
+
+    /* ---- Title Page ---- */
+    .title-hero {
+        text-align: center;
+        padding-top: 80px;
+    }
+    .title-hero .page-title {
+        font-size: 36px;
+        margin-bottom: 10px;
+        line-height: 1.25;
+    }
+    .title-hero .page-subtitle {
+        font-size: 18px;
+        margin-bottom: 12px;
+        color: #3498db;
+        font-weight: 500;
+    }
+    .problem-stmt {
+        max-width: 520px;
+        margin: 0 auto 40px;
+        font-size: 15px;
+        color: #555;
+        text-align: center;
+        line-height: 1.7;
+    }
+    .divider-line {
+        width: 60px;
+        height: 3px;
+        background: #3498db;
+        margin: 20px auto 30px;
+        border: none;
+    }
+
+    /* ---- Metric Cards ---- */
+    .metrics-row {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-top: 10px;
+    }
+    .metric-card {
+        flex: 1;
+        max-width: 200px;
+        background: #f8f9fa;
+        border-left: 4px solid #3498db;
+        padding: 20px 18px;
+        border-radius: 4px;
+        text-align: center;
+    }
+    .metric-card .metric-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    .metric-card .metric-label {
+        font-size: 12px;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 4px;
+    }
+
+    /* ---- Tables ---- */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        font-size: 13px;
+    }
+    table th {
+        background: #2c3e50;
+        color: #ffffff;
+        font-weight: 600;
+        text-align: left;
+        padding: 12px 14px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    table td {
+        padding: 10px 14px;
+        border-bottom: 1px solid #ecf0f1;
+        vertical-align: top;
+    }
+    table tr.alt-row td {
+        background: #f8f9fa;
+    }
+    table.messy-table td {
+        font-family: 'Consolas', 'Courier New', monospace;
+        font-size: 12px;
+        color: #c0392b;
+    }
+    table.messy-table th {
+        background: #e74c3c;
+    }
+    table.clean-table th {
+        background: #27ae60;
+    }
+    table.clean-table td {
+        color: #27ae60;
+        font-family: 'Consolas', 'Courier New', monospace;
+        font-size: 12px;
+    }
+    table.summary-table th {
+        background: #2c3e50;
+        font-size: 13px;
+        padding: 14px 16px;
+    }
+    table.summary-table td {
+        padding: 13px 16px;
+        font-size: 13.5px;
+        line-height: 1.5;
+    }
+    table.summary-table tr.alt-row td {
+        background: #eaf2f8;
+    }
+
+    /* ---- Issue List ---- */
+    .issue-list {
+        list-style: none;
+        padding: 0;
+        columns: 2;
+        column-gap: 30px;
+        margin-top: 14px;
+    }
+    .issue-list li {
+        padding: 6px 0 6px 22px;
+        position: relative;
+        font-size: 13.5px;
+        break-inside: avoid;
+        margin-bottom: 4px;
+    }
+    .issue-list li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 12px;
+        width: 10px;
+        height: 10px;
+        background: #e74c3c;
+        border-radius: 50%;
+    }
+
+    /* ---- Schema Comparison ---- */
+    table.schema-table th {
+        background: #34495e;
+    }
+    .before-val { color: #e74c3c; font-weight: 600; }
+    .after-val  { color: #27ae60; font-weight: 600; }
+
+    /* ---- Validation ---- */
+    .check-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0;
+        font-size: 14px;
+        border-bottom: 1px solid #ecf0f1;
+    }
+    .check-icon {
+        width: 26px;
+        height: 26px;
+        background: #27ae60;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+    table.audit-table td.changed {
+        background: #eafaf1;
+        font-weight: 600;
+        color: #27ae60;
+    }
+    table.audit-table th { background: #2c3e50; }
+
+    /* ---- Callout / Cards ---- */
+    .callout {
+        background: #f8f9fa;
+        border-left: 5px solid #3498db;
+        padding: 28px 30px;
+        margin: 24px 0;
+        border-radius: 4px;
+    }
+    .callout .callout-value {
+        font-size: 30px;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    .callout .callout-label {
+        font-size: 13px;
+        color: #7f8c8d;
+        margin-top: 4px;
+    }
+
+    .pill-row {
+        display: flex;
+        gap: 10px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+    }
+    .pill {
+        background: #eaf2f8;
+        color: #2c3e50;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .approach-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 16px;
+    }
+    .approach-list li {
+        padding: 10px 0 10px 30px;
+        position: relative;
+        font-size: 14px;
+        border-bottom: 1px solid #ecf0f1;
+    }
+    .approach-list li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 16px;
+        width: 12px;
+        height: 12px;
+        background: #3498db;
+        border-radius: 2px;
+    }
+    .approach-text {
+        max-width: 580px;
+        font-size: 14.5px;
+        line-height: 1.7;
+        color: #555;
+        margin: 20px 0;
+    }
+
+    /* ---- Footer ---- */
+    .footer-page {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        min-height: 287mm;
+    }
+    .footer-page .footer-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 12px;
+    }
+    .footer-badge {
+        display: inline-block;
+        background: #f8f9fa;
+        border: 2px solid #ecf0f1;
+        border-radius: 8px;
+        padding: 30px 50px;
+        margin-top: 30px;
+    }
+    .footer-badge .contact-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #95a5a6;
+        margin-bottom: 6px;
+    }
+    .footer-badge .contact-value {
+        font-size: 16px;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    .disclaimer {
+        margin-top: 40px;
+        font-size: 12px;
+        color: #95a5a6;
+        font-style: italic;
+    }
+
+    /* ---- Print ---- */
+    @media print {
+        body { background: white; }
+        .page {
+            width: auto;
+            margin: 0;
+            padding: 30px 40px;
+            page-break-after: always;
+        }
+        .page:last-child { page-break-after: auto; }
+    }
+</style>
+
+</head>
+<body>
+
+<div class="page">
+    <div class="title-hero">
+        <div class="page-title">Large-Scale E-commerce Data<br>Cleaning &amp; Standardization</div>
+        <div class="page-subtitle">125,000 Rows &nbsp;|&nbsp; 13 Columns &nbsp;|&nbsp; 8 Data Quality Issues</div>
+        <hr class="divider-line">
+        <div class="problem-stmt">
+            E-commerce data exports often arrive riddled with inconsistencies &mdash; encoding
+            corruption, mixed date formats, and unstandardized values. This project demonstrates
+            the systematic cleaning of a 125,000-row dataset containing 8 distinct quality
+            issues. The result is a fully standardized, analysis-ready dataset.
+        </div>
+        <div class="metrics-row">
+            <div class="metric-card">
+                <div class="metric-value">125,000</div>
+                <div class="metric-label">Rows Processed</div>
+            </div>
+            <div class="metric-card" style="border-left-color:#27ae60;">
+                <div class="metric-value">8</div>
+                <div class="metric-label">Issues Fixed</div>
+            </div>
+            <div class="metric-card" style="border-left-color:#e74c3c;">
+                <div class="metric-value">5,000</div>
+                <div class="metric-label">Duplicates Removed</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="page">
+    <div class="section-title">Data Quality Issues Identified</div>
+    <p style="margin-bottom:18px;color:#555;font-size:14px;">
+        Below is a sample of raw data rows illustrating the range of quality issues.
+        Red-highlighted values indicate data that required cleaning.
+    </p>
+    <table class="messy-table">
+        <thead>
+            <tr>
+                <th>order_id</th><th>sku</th><th>product_name</th><th>order_date</th><th>price</th><th>status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class=""><td>ORD-128360</td><td>sku-005</td><td>NaÃ¯ve Art Print Set</td><td>May 28, 2023</td><td>62.88</td><td>Cancellled</td></tr>
+<tr class="alt-row"><td>ORD-122200</td><td>SKU003</td><td>ÃlÃ§Ã¼ Aleti Premium</td><td>2023-01-26</td><td>€141,43</td><td>Processing</td></tr>
+<tr class=""><td>ORD-42132</td><td>sku-002</td><td>TÃ¼rkÃ§e Klavye Seti</td><td>14.04.2023</td><td>256.01 TL</td><td>cancelled</td></tr>
+<tr class="alt-row"><td>ORD-120443</td><td>SKU007</td><td>CrÃ¨me BrÃ»lÃ©e Torch Kit</td><td>Dec 24, 2024</td><td>€37,42</td><td>Pending</td></tr>
+<tr class=""><td>ORD-24187</td><td>SKU010</td><td>El NiÃ±o Weather Station</td><td>May 21, 2024</td><td>$8.97</td><td>Shipped</td></tr>
+<tr class="alt-row"><td>ORD-112797</td><td>Sku-010</td><td>El Niño Weather Station</td><td>05.09.2024</td><td>$11.78</td><td>shipped</td></tr>
+        </tbody>
+    </table>
+    <div class="sub-section-title">All Issues Found</div>
+    <ul class="issue-list">
+        <li><strong>UTF-8 Encoding Corruption:</strong> 37,978 product names contain Mojibake artifacts from double-encoded Unicode</li>
+<li><strong>Currency Symbols in Prices:</strong> 74,901 price values contain &euro;, $, &pound;, or TL symbols instead of clean numbers</li>
+<li><strong>Inconsistent Date Formats:</strong> 99,933 dates use DD.MM.YYYY, Mon DD YYYY, or MM/DD/YYYY instead of ISO 8601</li>
+<li><strong>Status Typos &amp; Casing:</strong> 12 status variants including misspellings like &ldquo;Cancellled&rdquo; and &ldquo;deliverred&rdquo;</li>
+<li><strong>Country Name Inconsistencies:</strong> 73,483 rows use full names or variants instead of ISO alpha-2 codes</li>
+<li><strong>SKU Format Variations:</strong> Mixed formats: SKU003, sku-002, Sku-010 across 125,000 rows</li>
+<li><strong>Unused Empty Columns:</strong> 3 columns (_unnamed_1, _unnamed_2, notes) are entirely null</li>
+<li><strong>Duplicate Records:</strong> 5,000 exact duplicate rows inflating the dataset</li>
+    </ul>
+</div>
+
+
+<div class="page">
+    <div class="section-title">Cleaning Actions Performed</div>
+    <p style="margin-bottom:20px;color:#555;font-size:14px;">
+        Each cleaning step was applied programmatically. Row counts are computed from
+        direct comparison of the raw and cleaned datasets.
+    </p>
+    <table class="summary-table">
+        <thead>
+            <tr>
+                <th>Issue</th>
+                <th style="text-align:center;">Rows Affected</th>
+                <th>Action Taken</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+        <tr >
+            <td style="font-weight:600;width:24%;">Duplicate Rows</td>
+            <td style="text-align:center;width:16%;font-weight:600;color:#3498db;">5,000</td>
+            <td>Identified and removed exact duplicate records to ensure each transaction appears once.</td>
+        </tr>
+    
+        <tr class="alt-row">
+            <td style="font-weight:600;width:24%;">UTF-8 Encoding Corruption</td>
+            <td style="text-align:center;width:16%;font-weight:600;color:#3498db;">37,978</td>
+            <td>Repaired Mojibake artifacts (e.g. &ldquo;Ã©&rdquo; &rarr; &ldquo;é&rdquo;) by detecting and reversing double-encoded UTF-8 sequences.</td>
+        </tr>
+    
+        <tr >
+            <td style="font-weight:600;width:24%;">Currency Symbols in Prices</td>
+            <td style="text-align:center;width:16%;font-weight:600;color:#3498db;">74,901</td>
+            <td>Stripped currency prefixes/suffixes (&euro;, $, &pound;, TL) and normalized European comma decimals to produce clean float values.</td>
+        </tr>
+    
+        <tr class="alt-row">
+            <td style="font-weight:600;width:24%;">Inconsistent Date Formats</td>
+            <td style="text-align:center;width:16%;font-weight:600;color:#3498db;">99,933</td>
+            <td>Parsed 4+ date formats (DD.MM.YYYY, Mon DD YYYY, MM/DD/YYYY, DD-MM-YYYY) into ISO 8601 (YYYY-MM-DD).</td>
+        </tr>
+    
+        <tr >
+            <td style="font-weight:600;width:24%;">Status Typos &amp; Casing</td>
+            <td style="text-align:center;width:16%;font-weight:600;color:#3498db;">62,294</td>
+            <td>Corrected misspellings (&ldquo;Cancellled&rdquo;, &ldquo;deliverred&rdquo;) and normalized all statuses to lowercase ({clean_unique_statuses} canonical values).</td>
+        </tr>
+    
+        <tr class="alt-row">
+            <td style="font-weight:600;width:24%;">Country Name Inconsistencies</td>
+            <td style="text-align:center;width:16%;font-weight:600;color:#3498db;">73,483</td>
+            <td>Mapped full names and variants (&ldquo;germany&rdquo;, &ldquo;United States&rdquo;, &ldquo;UK&rdquo;) to ISO 3166-1 alpha-2 codes.</td>
+        </tr>
+    
+        <tr >
+            <td style="font-weight:600;width:24%;">SKU Format Variations</td>
+            <td style="text-align:center;width:16%;font-weight:600;color:#3498db;">31,147</td>
+            <td>Standardized mixed formats (SKU003, sku-002, Sku-010) to uniform uppercase with dash (SKU-003).</td>
+        </tr>
+    
+        <tr class="alt-row">
+            <td style="font-weight:600;width:24%;">Unused / Empty Columns</td>
+            <td style="text-align:center;width:16%;font-weight:600;color:#3498db;">3 columns</td>
+            <td>Dropped {columns_removed} columns ({', '.join(unused_cols)}) that were entirely null or unused.</td>
+        </tr>
+    
+        <tr >
+            <td style="font-weight:600;width:24%;">Placeholder Strings as Nulls</td>
+            <td style="text-align:center;width:16%;font-weight:600;color:#3498db;">Verified</td>
+            <td>Converted sentinel strings (N/A, n/a) to proper null values for consistent missing-data handling.</td>
+        </tr>
+    
+        <tr class="alt-row">
+            <td style="font-weight:600;width:24%;">Phone Number Formatting</td>
+            <td style="text-align:center;width:16%;font-weight:600;color:#3498db;">81,346</td>
+            <td>Standardized varied phone formats (555.819.8173, +1-555-6983, 5554475) to a consistent pattern (555-XXX-XXXX).</td>
+        </tr>
+    
+        </tbody>
+    </table>
+</div>
+
+
+<div class="page">
+    <div class="section-title">Cleaned Dataset</div>
+    <p style="margin-bottom:18px;color:#555;font-size:14px;">
+        The same sample rows after all cleaning transformations have been applied.
+        Note the standardized formats, corrected encoding, and consistent values.
+    </p>
+    <table class="clean-table">
+        <thead>
+            <tr>
+                <th>order_id</th><th>sku</th><th>product_name</th><th>order_date</th><th>price</th><th>status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class=""><td>ORD-128360</td><td>SKU-005</td><td>Naïve Art Print Set</td><td>2023-05-28</td><td>62.88</td><td>cancelled</td></tr>
+<tr class="alt-row"><td>ORD-122200</td><td>SKU-003</td><td>Ölçü Aleti Premium</td><td>2023-01-26</td><td>141.43</td><td>processing</td></tr>
+<tr class=""><td>ORD-42132</td><td>SKU-002</td><td>Türkçe Klavye Seti</td><td>2023-04-14</td><td>256.01</td><td>cancelled</td></tr>
+<tr class="alt-row"><td>ORD-120443</td><td>SKU-007</td><td>Crème Brûlée Torch Kit</td><td>2024-12-24</td><td>37.42</td><td>pending</td></tr>
+<tr class=""><td>ORD-24187</td><td>SKU-010</td><td>El Niño Weather Station</td><td>2024-05-21</td><td>8.97</td><td>shipped</td></tr>
+<tr class="alt-row"><td>ORD-112797</td><td>SKU-010</td><td>El Niño Weather Station</td><td>2024-09-05</td><td>11.78</td><td>shipped</td></tr>
+        </tbody>
+    </table>
+
+    <div class="sub-section-title">Dataset Comparison</div>
+    <table class="schema-table">
+        <thead>
+            <tr>
+                <th style="width:35%;">Metric</th>
+                <th style="width:30%;">Before</th>
+                <th style="width:35%;">After</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+        <tr >
+            <td style="font-weight:600;">Total Rows</td>
+            <td class="before-val">125,000</td>
+            <td class="after-val">120,000</td>
+        </tr>
+    
+        <tr class="alt-row">
+            <td style="font-weight:600;">Columns</td>
+            <td class="before-val">13</td>
+            <td class="after-val">10</td>
+        </tr>
+    
+        <tr >
+            <td style="font-weight:600;">Duplicate Rows</td>
+            <td class="before-val">5,000</td>
+            <td class="after-val">0</td>
+        </tr>
+    
+        <tr class="alt-row">
+            <td style="font-weight:600;">Null Cells</td>
+            <td class="before-val">448,983</td>
+            <td class="after-val">78,257</td>
+        </tr>
+    
+        <tr >
+            <td style="font-weight:600;">Status Variants</td>
+            <td class="before-val">12</td>
+            <td class="after-val">5</td>
+        </tr>
+    
+        <tr class="alt-row">
+            <td style="font-weight:600;">Date Formats</td>
+            <td class="before-val">4+</td>
+            <td class="after-val">1 (ISO 8601)</td>
+        </tr>
+    
+        </tbody>
+    </table>
+</div>
+
+
+<div class="page">
+    <div class="section-title">Data Validation Results</div>
+
+    <div class="sub-section-title">Data Type Audit</div>
+    <table class="audit-table">
+        <thead>
+            <tr>
+                <th style="width:30%;">Column</th>
+                <th style="width:30%;">Before Type</th>
+                <th style="width:40%;">After Type</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+        <tr >
+            <td style="font-weight:600;">order_id</td>
+            <td>object</td>
+            <td>object</td>
+        </tr>
+    
+        <tr class="alt-row">
+            <td style="font-weight:600;">sku</td>
+            <td>object</td>
+            <td>object</td>
+        </tr>
+    
+        <tr >
+            <td style="font-weight:600;">product_name</td>
+            <td>object</td>
+            <td>object</td>
+        </tr>
+    
+        <tr class="alt-row">
+            <td style="font-weight:600;">order_date</td>
+            <td>object</td>
+            <td>object</td>
+        </tr>
+    
+        <tr >
+            <td style="font-weight:600;">price</td>
+            <td>object</td>
+            <td class="changed">float64</td>
+        </tr>
+    
+        <tr class="alt-row">
+            <td style="font-weight:600;">quantity</td>
+            <td>float64</td>
+            <td>float64</td>
+        </tr>
+    
+        <tr >
+            <td style="font-weight:600;">customer_email</td>
+            <td>object</td>
+            <td>object</td>
+        </tr>
+    
+        <tr class="alt-row">
+            <td style="font-weight:600;">customer_phone</td>
+            <td>object</td>
+            <td>object</td>
+        </tr>
+    
+        <tr >
+            <td style="font-weight:600;">shipping_country</td>
+            <td>object</td>
+            <td>object</td>
+        </tr>
+    
+        <tr class="alt-row">
+            <td style="font-weight:600;">status</td>
+            <td>object</td>
+            <td>object</td>
+        </tr>
+    
+        </tbody>
+    </table>
+
+    <div class="sub-section-title">Validation Checks Passed</div>
+    <div class="check-item">
+        <div class="check-icon">&#10003;</div>
+        <div>No duplicate rows remain in the cleaned dataset</div>
+    </div>
+<div class="check-item">
+        <div class="check-icon">&#10003;</div>
+        <div>All dates conform to ISO 8601 format (YYYY-MM-DD)</div>
+    </div>
+<div class="check-item">
+        <div class="check-icon">&#10003;</div>
+        <div>All price values are numeric (float64) with no currency symbols</div>
+    </div>
+<div class="check-item">
+        <div class="check-icon">&#10003;</div>
+        <div>No UTF-8 encoding artifacts detected in any text field</div>
+    </div>
+<div class="check-item">
+        <div class="check-icon">&#10003;</div>
+        <div>All country codes standardized to ISO 3166-1 alpha-2</div>
+    </div>
+<div class="check-item">
+        <div class="check-icon">&#10003;</div>
+        <div>All status values are lowercase with no misspellings</div>
+    </div>
+<div class="check-item">
+        <div class="check-icon">&#10003;</div>
+        <div>SKU format is consistent (uppercase with dash separator)</div>
+    </div>
+</div>
+
+
+<div class="page">
+    <div class="section-title">Technical Approach</div>
+
+    <div class="callout">
+        <div class="callout-value">125,000 rows processed in under 30 seconds</div>
+        <div class="callout-label">End-to-end pipeline execution including validation</div>
+    </div>
+
+    <div class="sub-section-title">Technology Stack</div>
+    <div class="pill-row">
+        <span class="pill">Python 3</span>
+        <span class="pill">Pandas</span>
+        <span class="pill">NumPy</span>
+        <span class="pill">ftfy (encoding repair)</span>
+        <span class="pill">pycountry (ISO codes)</span>
+    </div>
+
+    <div class="approach-text">
+        The cleaning pipeline is modular and reusable for future dataset updates.
+        Each step can be independently configured or extended for different data
+        sources. The approach prioritizes reproducibility &mdash; running the same
+        script on the same input will always produce identical output.
+    </div>
+
+    <div class="sub-section-title">Approach Highlights</div>
+    <ul class="approach-list">
+        <li><strong>Reproducible Pipeline</strong> &mdash; Deterministic transformations documented as code, producing identical results on every run</li>
+        <li><strong>Automated Validation</strong> &mdash; Built-in assertions verify data integrity after each cleaning step</li>
+        <li><strong>Modular Architecture</strong> &mdash; Each cleaning function handles one concern and can be toggled or reconfigured independently</li>
+        <li><strong>Graceful Error Handling</strong> &mdash; Malformed records are flagged and logged rather than silently dropped</li>
+        <li><strong>Scalable Design</strong> &mdash; Tested on 125K rows; architecture supports datasets of 1M+ rows with minimal changes</li>
+    </ul>
+</div>
+
+
+<div class="page">
+    <div class="footer-page">
+        <div class="footer-title">Thank You</div>
+        <p style="color:#7f8c8d;font-size:15px;max-width:460px;line-height:1.7;">
+            This case study demonstrates a complete data cleaning workflow &mdash;
+            from messy export to analysis-ready dataset. The pipeline is available
+            for review and can be adapted to your specific data sources.
+        </p>
+
+        <div class="footer-badge">
+            <div class="contact-label">Get In Touch</div>
+            <div class="contact-value">Available for Data Projects on Upwork</div>
+            <div style="margin-top:12px;font-size:13px;color:#95a5a6;">
+                Python &bull; Pandas &bull; Data Cleaning &bull; ETL &bull; Automation
+            </div>
+        </div>
+
+        <div class="disclaimer">
+            Simulated large-scale e-commerce export for demonstration purposes.
+            <br>All data is synthetically generated &mdash; no real customer information is included.
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
