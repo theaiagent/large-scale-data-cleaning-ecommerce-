@@ -421,7 +421,7 @@ summary_data = [
     ["6. Normalize Missing Values",
      f"{(df_raw['customer_email'].isin(['N/A','n/a','na','NA','-','--','.','none','None','null','NULL',''])).sum() + (df_raw['customer_phone'].isin(['N/A','n/a','na','NA','-','--','.','none','None','null','NULL',''])).sum():,} fake nulls",
      "Converted N/A, none, null, -, etc. to np.nan"],
-    ["7. Fix Encoding", f"~{int(len(df_raw) * 0.30):,} rows (est.)",
+    ["7. Fix Encoding", f"{corrupted_before:,} rows",
      "Repaired Latin-1 mojibake in product names"],
     ["8. Standardize Phones",
      f"{df['customer_phone'].notna().sum():,} formatted",
