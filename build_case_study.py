@@ -185,7 +185,7 @@ cleaning_steps = [
     {
         "issue": "Status Typos &amp; Casing",
         "affected": f"{status_casing_rows:,}",
-        "action": "Corrected misspellings (&ldquo;Cancellled&rdquo;, &ldquo;deliverred&rdquo;) and normalized all statuses to lowercase ({clean_unique_statuses} canonical values).",
+        "action": f"Corrected misspellings (&ldquo;Cancellled&rdquo;, &ldquo;deliverred&rdquo;) and normalized all statuses to lowercase ({clean_unique_statuses} canonical values).",
     },
     {
         "issue": "Country Name Inconsistencies",
@@ -200,7 +200,7 @@ cleaning_steps = [
     {
         "issue": "Unused / Empty Columns",
         "affected": f"{columns_removed} columns",
-        "action": "Dropped {columns_removed} columns ({', '.join(unused_cols)}) that were entirely null or unused.",
+        "action": f"Dropped {columns_removed} columns ({', '.join(unused_cols)}) that were entirely null or unused.",
     },
     {
         "issue": "Placeholder Strings as Nulls",
